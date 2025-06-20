@@ -21,12 +21,13 @@ import {
   Button,
 } from "@mui/material";
 import Link from "next/link";
-import { MockAdDB, CompanyId, Ad, Company } from "../data/mockdb";
+import { MockAdDB, CompanyId, Ad, Company } from "../../data/mockdb";
 import {
   MockAdInsights,
   AdInsight,
   startTrafficSimulator,
-} from "../data/insights";
+} from "../../data/insights";
+import { capitalize } from "lodash";
 
 const MetricCard = ({ title, value }: { title: string; value: string }) => (
   <Card sx={{ height: "100%" }}>
@@ -41,11 +42,14 @@ const MetricCard = ({ title, value }: { title: string; value: string }) => (
   </Card>
 );
 
-export default function AnalyticsPage() {
+export default function AnalyticsPage({ slug }: { slug: string }) {
   const searchParams = useSearchParams();
   const companyId = searchParams.get("co") as CompanyId | null;
 
-  const [company, setCompany] = useState<Company | null>(null);
+  const [company, setCompany] = useState<Company | null>({
+    id: slug as CompanyId,
+    name: capitalize(slug),
+  });
   const [companyInsights, setCompanyInsights] = useState<AdInsight | null>(
     null
   );

@@ -16,25 +16,25 @@ const Page = () => {
           </DialogTrigger>
           <DialogContent>
             <Link
-              href="/analytics?co=pfizer"
+              href="/analytics/pfizer"
               className="w-full mt-2 flex items-center justify-start p-2 hover:bg-gray-100 rounded-md"
             >
               Pfizer
             </Link>
             <Link
-              href="/analytics?co=genentech"
+              href="/analytics/genentech"
               className="w-full mt-2 h-10 flex items-center justify-start p-2 hover:bg-gray-100 rounded-md"
             >
               Genentech
             </Link>
             <Link
-              href="/analytics?co=gsk"
+              href="/analytics/gsk"
               className="w-full mt-2 h-10 flex items-center justify-start p-2 hover:bg-gray-100 rounded-md"
             >
               GSK
             </Link>
             <Link
-              href="/analytics?co=eli-lilly"
+              href="/analytics/eli-lilly"
               className="w-full mt-2 h-10 flex items-center justify-start p-2 hover:bg-gray-100 rounded-md"
             >
               Eli Lilly

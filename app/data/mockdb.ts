@@ -3,10 +3,6 @@
 // Lightweight, in-memory ad database + analytics layer
 // ─────────────────────────────────────────────────────────────
 
-/* ---------- Domain types ---------- */
-export type CompanyId = "pfizer" | "genentech" | "gsk" | "eli-lilly";
-export type CategoryId = "pancreatic-cancer" | "breast-cancer" | "arthritis";
-
 export interface Company {
   id: CompanyId;
   name: string;
@@ -33,30 +29,76 @@ export interface AdMetrics {
   dwellSeconds: number; // cumulative viewport time
 }
 
-/* ---------- Seed data ---------- */
+/* ---------- Domain types (UPDATED) ---------- */
+export type CompanyId = "pfizer" | "genentech" | "gsk" | "eli-lilly" | "bms";
+
+export type CategoryId =
+  | "pancreatic-cancer"
+  | "breast-cancer"
+  | "non-small-cell-lung-cancer"
+  | "arthritis"
+  | "psoriasis"
+  | "atrial-fibrillation"
+  | "type-2-diabetes";
+
+export interface Company {
+  id: CompanyId;
+  name: string;
+}
+
+export interface Category {
+  id: CategoryId;
+  label: string;
+}
+
+export interface Ad {
+  id: string; // e.g. "ibrance_banner"
+  companyId: CompanyId;
+  categoryIds: CategoryId[]; // can target multiple
+  creativeUrl: string; // where to fetch the image / html
+  headline: string;
+}
+// ... (the rest of the interfaces like AdMetrics remain the same)
+
+/* ---------- Seed data (UPDATED & EXPANDED) ---------- */
 const companies: Company[] = [
   { id: "pfizer", name: "Pfizer" },
   { id: "genentech", name: "Genentech" },
   { id: "gsk", name: "GSK" },
   { id: "eli-lilly", name: "Eli Lilly" },
+  { id: "bms", name: "Bristol Myers Squibb" }, // Added a new company
 ] as const;
 
 const categories: Category[] = [
+  // Oncology
   { id: "pancreatic-cancer", label: "Pancreatic Cancer" },
   { id: "breast-cancer", label: "Breast Cancer" },
-  { id: "arthritis", label: "Arthritis" },
+  { id: "non-small-cell-lung-cancer", label: "Non-Small Cell Lung Cancer" }, // Specific type
+  // Immunology
+  { id: "arthritis", label: "Rheumatoid Arthritis" }, // Made label more specific
+  { id: "psoriasis", label: "Plaque Psoriasis" },
+  // Cardiology
+  { id: "atrial-fibrillation", label: "Atrial Fibrillation" },
+  // Metabolic
+  { id: "type-2-diabetes", label: "Type 2 Diabetes" },
 ] as const;
 
 /** Which categories each company has purchased */
 const COMPANY_CATEGORY_MAP: Record<CompanyId, CategoryId[]> = {
-  pfizer: ["breast-cancer", "arthritis"],
-  genentech: ["pancreatic-cancer", "breast-cancer"],
-  gsk: ["arthritis"],
-  "eli-lilly": ["arthritis", "breast-cancer"],
+  pfizer: ["breast-cancer", "arthritis", "atrial-fibrillation", "psoriasis"], // Pfizer is big in many areas
+  genentech: [
+    "pancreatic-cancer",
+    "breast-cancer",
+    "non-small-cell-lung-cancer",
+  ], // Oncology focused
+  gsk: ["arthritis", "non-small-cell-lung-cancer"], // Added a new area for them
+  "eli-lilly": ["arthritis", "breast-cancer", "type-2-diabetes", "psoriasis"], // Strong in diabetes & immunology
+  bms: ["atrial-fibrillation", "psoriasis"], // BMS has major drugs in these areas
 } as const;
 
-/** Sample creatives */
+/** Sample creatives (UPDATED & EXPANDED with ORIGINAL IMAGES) */
 const ads: Ad[] = [
+  // --- Original Ads with your chosen images ---
   {
     id: "ibrance_banner",
     companyId: "pfizer",
@@ -66,28 +108,20 @@ const ads: Ad[] = [
     headline: "IBRANCE®—Advancing care in HR+/HER2- MBC",
   },
   {
-    id: "xeljanz_sidebar",
+    id: "xeljanz_multi", // Renamed to reflect multi-targeting
     companyId: "pfizer",
-    categoryIds: ["arthritis"],
+    categoryIds: ["arthritis", "psoriasis"], // *** TEST CASE: This ad targets two categories ***
     creativeUrl:
       "https://i.pinimg.com/736x/1e/0a/ea/1e0aeaef251341f51f3c88a1e180e039.jpg",
-    headline: "Relief for Rheumatoid Arthritis Starts Here",
+    headline: "XELJANZ®: For Moderate to Severe RA and Psoriatic Arthritis",
   },
   {
     id: "krazati_interstitial",
     companyId: "genentech",
-    categoryIds: ["pancreatic-cancer"],
+    categoryIds: ["pancreatic-cancer", "non-small-cell-lung-cancer"], // Krazati is for KRAS mutations, found in both
     creativeUrl:
       "https://i.pinimg.com/474x/79/e4/68/79e468caf13605df6f1b0f5d617e0b23.jpg",
-    headline: "Targeted options for KRAS-mutated PDAC",
-  },
-  {
-    id: "keytruda_banner",
-    companyId: "gsk",
-    categoryIds: ["arthritis"], // pretend crossover example
-    creativeUrl:
-      "https://static01.nyt.com/images/2011/06/20/science/21Posters-slide-HCPD/21Posters-slide-HCPD-jumbo.jpg?quality=75&auto=webp&disable=upscale",
-    headline: "KEYTRUDA®—Because Every Joint Matters",
+    headline: "Targeted options for KRAS-mutated PDAC & NSCLC",
   },
   {
     id: "verzenio_banner",
@@ -96,6 +130,41 @@ const ads: Ad[] = [
     creativeUrl:
       "https://news.cornell.edu/sites/default/files/styles/full_size/public/2020-04/dr._thomas_eclectric_oil_front.jpg?itok=JCBcUBPz",
     headline: "VERZENIO®—Keep Fighting HR+ MBC",
+  },
+  {
+    id: "keytruda_nsclc", // More accurate than the original 'arthritis' example
+    companyId: "gsk", // Let's pretend GSK markets this
+    categoryIds: ["non-small-cell-lung-cancer"],
+    creativeUrl:
+      "https://static01.nyt.com/images/2011/06/20/science/21Posters-slide-HCPD/21Posters-slide-HCPD-jumbo.jpg?quality=75&auto=webp&disable=upscale",
+    headline: "KEYTRUDA®: A Frontline Foundation in NSCLC Treatment",
+  },
+
+  // --- New Ads for Diversification (with placeholder URLs for you to replace) ---
+  {
+    id: "jardiance_t2d",
+    companyId: "eli-lilly",
+    categoryIds: ["type-2-diabetes"],
+    creativeUrl:
+      "https://media.gettyimages.com/id/578584210/vector/vintage-victorian-style-liniment-advertisement.jpg?s=612x612&w=gi&k=20&c=T18vkYmdBsMdp-HEWea_wqIVChpu4u1Et_bcaij1VWY=",
+    headline: "Manage T2D and Reduce CV Risk with JARDIANCE®",
+  },
+  {
+    id: "eliquis_afib",
+    companyId: "bms", // Marketed by BMS-Pfizer alliance
+    categoryIds: ["atrial-fibrillation"],
+    creativeUrl:
+      "https://vintageinn.files.wordpress.com/2013/11/duke_u_aspironal_better_than_whiskey_1928.jpg",
+    headline:
+      "ELIQUIS® for Stroke Reduction in Nonvalvular Atrial Fibrillation (NVAF)",
+  },
+  {
+    id: "taltz_pso",
+    companyId: "eli-lilly",
+    categoryIds: ["psoriasis"], // *** TEST CASE: Competition for 'psoriasis' category ***
+    creativeUrl:
+      "https://img-s-msn-com.akamaized.net/tenant/amp/entityid/AA1rKBaC.img?w=800&h=415&q=60&m=2&f=jpg",
+    headline: "TALTZ®: For rapid, lasting skin clearance in Plaque Psoriasis",
   },
 ] as const;
 

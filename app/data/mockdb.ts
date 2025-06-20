@@ -58,7 +58,13 @@ export interface Ad {
   creativeUrl: string; // where to fetch the image / html
   headline: string;
 }
-// ... (the rest of the interfaces like AdMetrics remain the same)
+
+export interface Physician {
+  id: string;
+  name: string;
+  title: string;
+  description: string; // This will be used for embeddings
+}
 
 /* ---------- Seed data (UPDATED & EXPANDED) ---------- */
 const companies: Company[] = [
@@ -168,6 +174,37 @@ const ads: Ad[] = [
   },
 ] as const;
 
+const physicians: Physician[] = [
+  {
+    id: "phys_001",
+    name: "Dr. Eleanor Vance",
+    title: "Medical Oncologist, Memorial Sloan Kettering",
+    description:
+      "Specializing in the treatment of metastatic breast cancer and HER2-positive tumors. My research focuses on novel targeted therapies and immunotherapies to improve patient outcomes in advanced-stage disease.",
+  },
+  {
+    id: "phys_002",
+    name: "Dr. Ben Carter",
+    title: "Rheumatologist, Cleveland Clinic",
+    description:
+      "Clinical expert in autoimmune and inflammatory conditions, with a primary focus on rheumatoid arthritis and psoriatic arthritis. I am actively involved in clinical trials for next-generation JAK inhibitors and biologics.",
+  },
+  {
+    id: "phys_003",
+    name: "Dr. Marcus Thorne",
+    title: "Director of Cardiac Electrophysiology, Johns Hopkins",
+    description:
+      "My practice is dedicated to managing cardiac arrhythmias. I have extensive experience in stroke prevention strategies for patients with non-valvular atrial fibrillation (NVAF) and complex ablation procedures.",
+  },
+  {
+    id: "phys_004",
+    name: "Dr. Sofia Rossi",
+    title: "Gastrointestinal Oncologist, Dana-Farber Cancer Institute",
+    description:
+      "Leading research on therapies for pancreatic ductal adenocarcinoma (PDAC) and other GI malignancies. My work investigates the tumor microenvironment and resistance mechanisms to chemotherapy and targeted agents, including KRAS inhibitors.",
+  },
+] as const;
+
 /* ---------- In-memory metric store ---------- */
 const adMetrics: Record<string, AdMetrics> = {};
 
@@ -256,6 +293,14 @@ export const MockAdDB = {
         dwellSeconds: 0,
       } as AdMetrics
     );
+  },
+
+  listPhysicians(): Physician[] {
+    return [...physicians];
+  },
+
+  getPhysicianById(id: string): Physician | undefined {
+    return physicians.find((p) => p.id === id);
   },
 
   /* --- dev helpers --- */

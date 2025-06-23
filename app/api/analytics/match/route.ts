@@ -1,23 +1,26 @@
 import { NextResponse } from "next/server";
 import { ChromaClient, Collection } from "chromadb";
 import { MockAdDB, Physician } from "../../../data/mockdb";
-import { DefaultEmbeddingFunction } from "@chroma-core/default-embed";
+import OpenAI from "openai";
+import { PHYSICIAN_COLLECTION_NAME } from "@/lib/utils";
 
-const embedder: DefaultEmbeddingFunction = new DefaultEmbeddingFunction();
 let physicianCollection: Collection | null = null;
 
-// Caching function for ML resources
+const client = new OpenAI({
+  apiKey: process.env["OPENAI_API_KEY"],
+});
+
 async function getResources() {
-  if (embedder && physicianCollection) {
-    return { embedder, physicianCollection };
+  if (physicianCollection) {
+    return { physicianCollection };
   }
 
   const client = new ChromaClient();
   physicianCollection = await client.getCollection({
-    name: "physician_profiles",
+    name: PHYSICIAN_COLLECTION_NAME,
   });
 
-  return { embedder, physicianCollection };
+  return { physicianCollection };
 }
 
 export async function POST(request: Request) {
@@ -27,7 +30,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "adId is required" }, { status: 400 });
     }
 
-    // 1. Find the ad and its primary target category label
     const ad = MockAdDB.listAds().find((a) => a.id === adId);
     if (!ad || ad.categoryIds.length === 0) {
       return NextResponse.json(
@@ -45,25 +47,47 @@ export async function POST(request: Request) {
         { status: 404 }
       );
     }
-    const textToEmbed = category.label; // e.g., "Breast Cancer"
+    const textToEmbed = category.label;
 
-    // 2. Get ML resources
-    const { embedder, physicianCollection } = await getResources();
+    const { physicianCollection } = await getResources();
 
-    // 3. Create an embedding for the ad's TARGET CATEGORY
-    const queryEmbeddings = await embedder.generate([textToEmbed]);
-
-    // 4. Query the PHYSICIAN collection to find the top 3 most similar doctors
-    const results = await physicianCollection.query({
-      queryEmbeddings,
-      nResults: 3,
+    const embedding = await client.embeddings.create({
+      model: "text-embedding-3-small",
+      input: textToEmbed,
     });
 
-    // 5. Look up the full physician profiles using the IDs from the search results
+    const results = await physicianCollection.query({
+      queryEmbeddings: [embedding.data[0].embedding],
+      nResults: 3,
+      include: ["distances"],
+    });
+
+    if (!results.ids?.[0] || !results.distances?.[0]) {
+      return NextResponse.json([]);
+    }
+
     const matchedPhysicianIds = results.ids[0];
+    const matchedDistances = results.distances[0];
+
     const matchedPhysicians = matchedPhysicianIds
-      .map((id) => MockAdDB.getPhysicianById(id))
-      .filter((p): p is Physician => p !== undefined); // Type guard to remove undefined
+      .map((id, index) => {
+        const physician = MockAdDB.getPhysicianById(id);
+        if (!physician) return null;
+
+        // if there is no match found then don't show an ad (meaning similarity is 0)
+        const l2Distance = matchedDistances[index];
+        let similarity = 0;
+
+        if (l2Distance) {
+          const cosineSimilarity = 1 - Math.pow(l2Distance, 2) / 2;
+          similarity = (cosineSimilarity + 1) / 2;
+        }
+
+        return { physician, similarity };
+      })
+      .filter(
+        (p): p is { physician: Physician; similarity: number } => p !== null
+      );
 
     return NextResponse.json(matchedPhysicians);
   } catch (error) {

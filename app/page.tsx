@@ -1,4 +1,5 @@
 import HomePageInput from "@/components/home-page-input";
+import Logo from "@/components/logo";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { ExternalLink } from "lucide-react";
 import Link from "next/link";
@@ -7,10 +8,7 @@ const Page = () => {
   return (
     <div className="w-screen h-screen flex flex-col items-center justify-center">
       <div className="w-2/3 h-full flex flex-col justify-center items-center">
-        <div className="text-4xl text-black mb-4 font-light">
-          <span className="text-primary">m</span>
-          ere<span className="text-primary">d</span>ith
-        </div>
+        <Logo />
         <HomePageInput />
       </div>
       <div className="h-10 flex justify-center items-center">

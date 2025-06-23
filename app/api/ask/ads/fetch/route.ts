@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { ChromaClient, Collection } from "chromadb";
-import { MockAdDB, Ad } from "../../../../data/mockdb"; // Use alias for clean imports
+import { MockAdDB } from "../../../../data/mockdb";
 import OpenAI from "openai";
 import { AD_COLLECTION_NAME } from "@/lib/utils";
 
@@ -8,8 +8,6 @@ const client = new OpenAI({
   apiKey: process.env["OPENAI_API_KEY"],
 });
 
-// We'll cache the model and Chroma client instance to avoid reloading on every request.
-// This is a simple but effective optimization for serverless environments.
 let collection: Collection | null = null;
 
 async function getCollection() {
@@ -23,9 +21,6 @@ async function getCollection() {
   return { collection };
 }
 
-// This is a crucial parameter. It prevents us from showing ads that are a poor match.
-// You'll need to tune this value. 0.5 is a reasonable starting point.
-// (1 = perfect match, 0 = no relation)
 const SIMILARITY_THRESHOLD = 0.5;
 
 export async function POST(request: Request) {
@@ -39,27 +34,21 @@ export async function POST(request: Request) {
       );
     }
 
-    // 1. Get our ML resources
     const { collection } = await getCollection();
 
-    // 2. Generate an embedding for the user's question
     const embedding = await client.embeddings.create({
       model: "text-embedding-3-small",
       input: question,
     });
 
-    console.log("querying for question");
-
-    // 3. Query Chroma to find the most similar ad category
     const results = await collection.query({
-      queryEmbeddings: [embedding.data[0].embedding], // Use the first embedding from the array
-      nResults: 1, // We only care about the single best match
+      queryEmbeddings: [embedding.data[0].embedding],
+      nResults: 1,
     });
 
-    // 4. Check if we found any result
     if (results.ids.length === 0 || results.ids[0].length === 0) {
       console.log(`No category match found for question: "${question}"`);
-      return NextResponse.json(null); // Return null to indicate no ad
+      return NextResponse.json(null);
     }
 
     const bestMatch = {
@@ -69,14 +58,20 @@ export async function POST(request: Request) {
     };
 
     // if there is no match found then don't show an ad (meaning similarity is 0)
-    const similarity = 1 - (bestMatch.distance ?? 1);
+    const l2Distance = bestMatch.distance;
+    let similarity = 0;
+
+    if (l2Distance) {
+      const cosineSimilarity = 1 - Math.pow(l2Distance, 2);
+      similarity = (cosineSimilarity + 1) / 2;
+    }
+
     console.log(
       `Query: "${question}" | Best Match: ${
         bestMatch.id
       } | Similarity: ${similarity.toFixed(4)}`
     );
 
-    // 6. Enforce our quality threshold
     if (similarity < SIMILARITY_THRESHOLD) {
       console.log(
         `Match found, but similarity is below threshold. Not showing ad.`
@@ -84,7 +79,6 @@ export async function POST(request: Request) {
       return NextResponse.json(null);
     }
 
-    // 7. We have a winner! Find an ad for this category.
     const adsForCategory = MockAdDB.listAds({
       categoryId: bestMatch.categoryId as any,
     });
@@ -96,23 +90,66 @@ export async function POST(request: Request) {
       return NextResponse.json(null);
     }
 
-    // Simple logic: pick the first available ad.
-    // A more advanced system could A/B test or round-robin here.
     const adToShow = adsForCategory[0];
     const companyName = MockAdDB.listCompanies().find(
       (c) => c.id === adToShow.companyId
     )?.name;
 
-    // 8. IMPORTANT: Record the impression on the backend.
     MockAdDB.recordImpression(adToShow.id);
 
-    // 9. Return the ad data, including company name for easier display on the frontend.
     return NextResponse.json({
       ...adToShow,
       companyName: companyName || adToShow.companyId,
     });
   } catch (error) {
     console.error("Error fetching ad:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const answer = searchParams.get("answer");
+  const ad = searchParams.get("ad");
+
+  if (!answer || !ad) {
+    return NextResponse.json(
+      { error: "Missing 'answer' or 'ad' parameter" },
+      { status: 400 }
+    );
+  }
+
+  const req = { answer, ad };
+
+  try {
+    const response = await client.chat.completions.create({
+      model: "gpt-4o",
+      messages: [
+        {
+          role: "system",
+          content:
+            "Given the answer to some question asked by a physician and the name of a drug in a pharma ad, return a short blurb that explains how the drug might apply to the situation the physician is asking about. Only return text and use no markdown.",
+        },
+        { role: "user", content: JSON.stringify(req) },
+      ],
+      max_tokens: 200,
+    });
+
+    const answer = response.choices[0].message.content;
+
+    if (!answer) {
+      return NextResponse.json(
+        { error: "No answer generated" },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ answer: answer.trim() });
+  } catch (error) {
+    console.error("Error fetching connection:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }

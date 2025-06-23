@@ -1,24 +1,39 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
-import { Ad, Company } from "../data/mockdb"; // Assuming types are exported
+import { Ad } from "../data/mockdb"; // Assuming types are exported
+import { useChat } from "@ai-sdk/react";
+import { useSearchParams } from "next/navigation";
 
 // Define a more complete Ad type for our state, including the companyName
 interface AdWithCompany extends Ad {
   companyName: string;
 }
 
-interface HistoryItem {
-  role: string;
-  content: string;
-}
-
 export default function Home() {
-  const [question, setQuestion] = useState<string>("");
-  const [history, setHistory] = useState<HistoryItem[]>([]);
-  const [loading, setLoading] = useState<boolean>(false);
+  // State for ad display is still managed manually
   const [ad, setAd] = useState<AdWithCompany | null>(null);
+
+  // The useChat hook manages messages, input, and loading state
+  const {
+    messages,
+    input,
+    handleInputChange,
+    handleSubmit: originalHandleSubmit,
+    status,
+    setMessages,
+    append,
+  } = useChat({
+    api: "/api/ask",
+    onFinish: () => {
+      // Hide the ad when the response is complete
+      setAd(null);
+    },
+  });
+
+  const searchParams = useSearchParams();
+  const isLoading = status === "submitted" || status === "streaming";
 
   const endOfMessagesRef = useRef<HTMLDivElement>(null);
 
@@ -28,71 +43,48 @@ export default function Home() {
 
   useEffect(() => {
     scrollToBottom();
-  }, [history]);
+  }, [messages]);
 
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!question.trim()) return;
-
-    setLoading(true);
-    setAd(null); // Clear previous ad immediately
-
-    // Add the user's question to history optimistically
-    const newHistory = [...history, { role: "user", content: question }];
-    setHistory(newHistory);
-    const currentQuestion = question;
-    setQuestion(""); // Clear the input field
-
-    // --- Core Logic Change: Fire API calls in parallel ---
+  const fetchAdForQuestion = async (question: string) => {
+    setAd(null); // Clear previous ad
     try {
-      // 1. Fetch the ad. This is usually fast.
-      const adPromise = axios.post("/api/ask/ads/fetch", {
-        question: currentQuestion,
+      const adResponse = await axios.post("/api/ask/ads/fetch", {
+        question: question,
       });
-
-      // 2. Fetch the answer from OpenAI. This is slow.
-      const answerPromise = axios.post("/api/ask", {
-        question: currentQuestion,
-        history: history, // Send history *before* the new question
-      });
-
-      // Handle the ad response as soon as it arrives
-      adPromise
-        .then((response) => {
-          if (response.data) {
-            setAd(response.data);
-          }
-        })
-        .catch((err) => console.error("Could not fetch ad:", err));
-
-      // Wait for the main answer to resolve
-      const answerResponse = await answerPromise;
-
-      // Update history with the assistant's answer
-      setHistory([
-        ...newHistory,
-        { role: "assistant", content: answerResponse.data.answer },
-      ]);
-    } catch (error) {
-      console.error("Error fetching the answer:", error);
-      // Optionally show an error message in the chat
-      setHistory([
-        ...newHistory,
-        {
-          role: "assistant",
-          content: "Sorry, I encountered an error. Please try again.",
-        },
-      ]);
-    } finally {
-      // Once the answer is received, the loading state ends, and the ad disappears.
-      setLoading(false);
-      setAd(null);
+      if (adResponse.data) {
+        setAd(adResponse.data);
+      }
+    } catch (err) {
+      console.error("Could not fetch ad:", err);
     }
   };
 
+  // This effect handles the initial question from the URL query parameter.
+  useEffect(() => {
+    const initialQuestion = searchParams.get("q");
+    if (initialQuestion) {
+      fetchAdForQuestion(initialQuestion);
+      append({ role: "user", content: initialQuestion });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run only once on mount
+
+  // Custom submit handler to fetch ads in parallel
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!input.trim()) return;
+
+    const currentQuestion = input;
+
+    // This starts the chat stream and handles optimistic UI updates for messages
+    originalHandleSubmit(event);
+
+    // Fetch the ad in parallel
+    await fetchAdForQuestion(currentQuestion);
+  };
+
   const handleNewConversation = () => {
-    setHistory([]);
-    setQuestion("");
+    setMessages([]); // Use the setter from useChat to clear history
   };
 
   return (
@@ -116,7 +108,8 @@ export default function Home() {
       <main className="flex-grow pt-20 pb-36">
         <div className="max-w-3xl mx-auto px-4">
           {/* --- Ad Display Logic --- */}
-          {loading && ad && (
+          {/* The ad shows ONLY when loading AND an ad has been successfully fetched */}
+          {isLoading && ad && (
             <div className="fixed bottom-24 sm:bottom-6 right-1/2 sm:right-6 translate-x-1/2 sm:translate-x-0 w-80 bg-white shadow-xl rounded-lg p-4 z-30 flex flex-col items-center">
               <img
                 src={ad.creativeUrl}
@@ -139,9 +132,9 @@ export default function Home() {
           )}
 
           <div className="space-y-4">
-            {history.map((item, index) => (
+            {messages.map((item) => (
               <div
-                key={index}
+                key={item.id}
                 className={`p-4 rounded-lg ${
                   item.role === "user"
                     ? "bg-blue-50 text-gray-800"
@@ -171,16 +164,16 @@ export default function Home() {
               type="text"
               placeholder="Ask a clinical question (e.g., 'What are treatments for KRAS-mutated PDAC?')"
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none disabled:bg-gray-100 transition-shadow"
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              disabled={loading}
+              value={input}
+              onChange={handleInputChange}
+              disabled={isLoading}
             />
             <button
               type="submit"
               className="h-12 px-5 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-blue-400 disabled:cursor-not-allowed flex items-center justify-center shrink-0"
-              disabled={loading}
+              disabled={isLoading}
             >
-              {loading ? (
+              {isLoading ? (
                 <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
               ) : (
                 "Ask"

@@ -6,3 +6,6 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const PRIMARY_COLOR = "#E4643D";
+
+export const AD_COLLECTION_NAME = "ads";
+export const PHYSICIAN_COLLECTION_NAME = "physician_profiles";

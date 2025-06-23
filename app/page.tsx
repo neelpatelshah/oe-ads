@@ -1,18 +1,25 @@
+import HomePageInput from "@/components/home-page-input";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { ExternalLink } from "lucide-react";
 import Link from "next/link";
 
 const Page = () => {
   return (
-    <div className="w-screen h-screen flex items-center justify-center">
-      <div className="w-1/2 h-full flex justify-center items-center bg-white hover:bg-primary/10 transition-colors duration-300">
-        <p className="text-3xl font-bold hover:cursor-pointer">
-          <Link href="/ask">ASK</Link>
-        </p>
+    <div className="w-screen h-screen flex flex-col items-center justify-center">
+      <div className="w-2/3 h-full flex flex-col justify-center items-center">
+        <div className="text-4xl text-black mb-4 font-light">
+          <span className="text-primary">m</span>
+          ere<span className="text-primary">d</span>ith
+        </div>
+        <HomePageInput />
       </div>
-      <div className="w-1/2 h-full flex justify-center items-center bg-white hover:bg-primary/10 transition-colors duration-300">
+      <div className="h-10 flex justify-center items-center">
         <Dialog>
-          <DialogTrigger className="text-3xl font-bold hover:cursor-pointer">
-            ANALYTICS
+          <DialogTrigger className="mb-12">
+            <div className="w-full h-full rounded-lg hover:border hover:border-black cursor-pointer text-xs p-4 font-light">
+              Advertiser? Open the portal.
+              <ExternalLink className="inline ml-2" size={12} />
+            </div>
           </DialogTrigger>
           <DialogContent>
             <Link

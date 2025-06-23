@@ -19,8 +19,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <NextTopLoader color={PRIMARY_COLOR} showSpinner={false} />
       <body className={`${roboto.className} ${openSans.className}`}>
+        <NextTopLoader color={PRIMARY_COLOR} showSpinner={false} />
         {children}
       </body>
     </html>

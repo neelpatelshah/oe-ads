@@ -4,18 +4,16 @@ const openai = new OpenAI({ apiKey: process.env["OPENAI_API_KEY"] });
 
 import { ChromaClient } from "chromadb";
 import { MockAdDB } from "../app/data/mockdb";
+import { AD_COLLECTION_NAME, PHYSICIAN_COLLECTION_NAME } from "@/lib/utils";
 
 const client = new ChromaClient();
 
 async function seedDatabase() {
   console.log("Starting DB seed process...");
 
-  const COLLECTION_NAME = "mock_ad_cat_data";
-  const PHYSICIAN_COLLECTION_NAME = "mock_physician_profiles";
-
   try {
-    await client.deleteCollection({ name: COLLECTION_NAME });
-    console.log(`Collection '${COLLECTION_NAME}' deleted.`);
+    await client.deleteCollection({ name: AD_COLLECTION_NAME });
+    console.log(`Collection '${AD_COLLECTION_NAME}' deleted.`);
 
     await client.deleteCollection({ name: PHYSICIAN_COLLECTION_NAME });
     console.log(`Collection '${PHYSICIAN_COLLECTION_NAME}' deleted.`);
@@ -24,7 +22,9 @@ async function seedDatabase() {
   }
 
   try {
-    const collection = await client.createCollection({ name: COLLECTION_NAME });
+    const collection = await client.createCollection({
+      name: AD_COLLECTION_NAME,
+    });
 
     const categories = MockAdDB.listCategories();
     const documents = [];
@@ -57,7 +57,7 @@ async function seedDatabase() {
 
     console.log("✅ Database seeded successfully!");
     console.log(
-      `Added ${await collection.count()} documents to the '${COLLECTION_NAME}' collection.`
+      `Added ${await collection.count()} documents to the '${AD_COLLECTION_NAME}' collection.`
     );
   } catch (error) {
     console.error("Error during seeding ads:", error);

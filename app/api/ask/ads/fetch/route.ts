@@ -1,22 +1,26 @@
 import { NextResponse } from "next/server";
 import { ChromaClient, Collection } from "chromadb";
 import { MockAdDB, Ad } from "../../../../data/mockdb"; // Use alias for clean imports
-import { DefaultEmbeddingFunction } from "@chroma-core/default-embed";
+import OpenAI from "openai";
+import { AD_COLLECTION_NAME } from "@/lib/utils";
+
+const client = new OpenAI({
+  apiKey: process.env["OPENAI_API_KEY"],
+});
 
 // We'll cache the model and Chroma client instance to avoid reloading on every request.
 // This is a simple but effective optimization for serverless environments.
-const embedder = new DefaultEmbeddingFunction();
 let collection: Collection | null = null;
 
-async function getModelAndCollection() {
-  if (embedder && collection) {
-    return { embedder, collection };
+async function getCollection() {
+  if (collection) {
+    return { collection };
   }
 
   const client = new ChromaClient();
-  collection = await client.getCollection({ name: "ad_categories" });
+  collection = await client.getCollection({ name: AD_COLLECTION_NAME });
 
-  return { embedder, collection };
+  return { collection };
 }
 
 // This is a crucial parameter. It prevents us from showing ads that are a poor match.
@@ -36,14 +40,19 @@ export async function POST(request: Request) {
     }
 
     // 1. Get our ML resources
-    const { embedder, collection } = await getModelAndCollection();
+    const { collection } = await getCollection();
 
     // 2. Generate an embedding for the user's question
-    const queryEmbeddings = await embedder.generate([question]);
+    const embedding = await client.embeddings.create({
+      model: "text-embedding-3-small",
+      input: question,
+    });
+
+    console.log("querying for question");
 
     // 3. Query Chroma to find the most similar ad category
     const results = await collection.query({
-      queryEmbeddings,
+      queryEmbeddings: [embedding.data[0].embedding], // Use the first embedding from the array
       nResults: 1, // We only care about the single best match
     });
 

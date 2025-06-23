@@ -36,7 +36,7 @@ I allocated about 10 hours to this over a few days, and I wanted to showcase var
 
 - a nice looking app
 - an ad placement strategy similar to what we might do in a production setting
-- create a sort of ad success scoring as a proof of concept.
+- a sort of ad success scoring as a proof of concept
 
 **App Improvements**
 
@@ -51,7 +51,7 @@ I also generated a mocked database and service layer that was suitable for my ne
 
 I wanted to have an ad placement solution that better mirrored something OpenEvidence might actually build. I settled on creating embeddings for each category in a vectorized database and then querying against those with the user's question to get results, and using cosine similarity to determine if an ad should be shown or not.
 
-I chose ChromaDB as a very light and easy solution to do this, fitting quite neatly into a NextJS environment without too much effort. Ultimately, I used enough pieces to make this work, but the level-ups here In the real world are straightforward:
+I chose ChromaDB as a very light and easy solution to do this, fitting quite neatly into a NextJS environment without too much effort. Ultimately, I used enough pieces to make this work, but the level-ups here in the real world are straightforward:
 
 - I imagine OpenEvidence has much stronger and more bespoque infra that this could be built on top of, including using a better tuned embedding model than somthing out of the box from OpenAI.
 - With some testing, I imagine a mixture of scoring would be used to match ads to queries rather than just a single distance measurement with an arbitrarily low threshold to make sure ads show up consistently for this demo.
@@ -86,6 +86,6 @@ In addition to the improvements I mentioned above, I want to make note of a few 
 - The Vercel AI SDK could still be used since you can supply custom models to it, its one example of many modular choices throughout the project.
 - There's a bunch of console warnings from a dependency of ChromaDB that isn't resolved properly. It's not needed so I just left it alone rather than toying too much with ESM stuff.
 
-To me, this shows multiple areas of a mature ad offering covered in a realistic and upgradeable way. Between core ingredients (like vector search for ad placement) and bits of sugar (how does this drug apply to the model response?), I think this demoes a product that advertisers would see immediate value in, with the ability to improve their ads and buy back into the system.
+To me, this shows multiple areas of a mature ad offering covered in a realistic and upgradeable way. Between core ingredients (like vector search for ad placement) and bits of sugar (how does this drug apply to the model response?), I think this demos a product that advertisers would see immediate value in with metrics to help improve their ads and buy back into the system.
 
 Thank you for your time!

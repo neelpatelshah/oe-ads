@@ -1,21 +1,17 @@
 import { NextResponse } from "next/server";
 import { ChromaClient, Collection } from "chromadb";
 import { MockAdDB, Ad } from "../../../../data/mockdb"; // Use alias for clean imports
-import { FeatureExtractionPipeline } from "@xenova/transformers";
+import { DefaultEmbeddingFunction } from "@chroma-core/default-embed";
 
 // We'll cache the model and Chroma client instance to avoid reloading on every request.
 // This is a simple but effective optimization for serverless environments.
-let embedder: FeatureExtractionPipeline | null = null;
+const embedder = new DefaultEmbeddingFunction();
 let collection: Collection | null = null;
 
 async function getModelAndCollection() {
   if (embedder && collection) {
     return { embedder, collection };
   }
-
-  // Use dynamic import for ES Modules like transformers.js
-  const { pipeline } = await import("@xenova/transformers");
-  embedder = await pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2");
 
   const client = new ChromaClient();
   collection = await client.getCollection({ name: "ad_categories" });
@@ -43,15 +39,11 @@ export async function POST(request: Request) {
     const { embedder, collection } = await getModelAndCollection();
 
     // 2. Generate an embedding for the user's question
-    const queryEmbeddingOutput = await embedder(question, {
-      pooling: "mean",
-      normalize: true,
-    });
-    const queryEmbedding = Array.from(queryEmbeddingOutput.data);
+    const queryEmbeddings = await embedder.generate([question]);
 
     // 3. Query Chroma to find the most similar ad category
     const results = await collection.query({
-      queryEmbeddings: [queryEmbedding],
+      queryEmbeddings,
       nResults: 1, // We only care about the single best match
     });
 

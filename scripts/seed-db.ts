@@ -1,16 +1,14 @@
+import OpenAI from "openai";
+
+const openai = new OpenAI({ apiKey: process.env["OPENAI_API_KEY"] });
+
 import { ChromaClient } from "chromadb";
 import { MockAdDB } from "../app/data/mockdb";
-import { pipeline } from "@xenova/transformers";
 
 const client = new ChromaClient();
 
 async function seedDatabase() {
   console.log("Starting DB seed process...");
-
-  const embedder = await pipeline(
-    "feature-extraction",
-    "Xenova/all-MiniLM-L6-v2"
-  );
 
   const COLLECTION_NAME = "mock_ad_cat_data";
   const PHYSICIAN_COLLECTION_NAME = "mock_physician_profiles";
@@ -39,23 +37,22 @@ async function seedDatabase() {
 
       const textToEmbed = category.label;
 
-      const output = await embedder(textToEmbed, {
-        pooling: "mean",
-        normalize: true,
+      const embedding = await openai.embeddings.create({
+        model: "text-embedding-3-small",
+        input: textToEmbed,
       });
-      const embedding = Array.from(output.data);
 
       documents.push(textToEmbed);
-      embeddings.push(embedding);
+      embeddings.push(embedding.data[0].embedding);
       metadatas.push({ categoryId: category.id });
       ids.push(category.id);
     }
 
     await collection.add({
-      ids: ids,
-      embeddings: Array.from(embeddings),
-      metadatas: metadatas,
-      documents: documents,
+      ids,
+      embeddings,
+      metadatas,
+      documents,
     });
 
     console.log("✅ Database seeded successfully!");
@@ -81,14 +78,13 @@ async function seedDatabase() {
     const physicians = MockAdDB.listPhysicians();
     for (const physician of physicians) {
       console.log(`Embedding profile for: ${physician.name}`);
-      const output = await embedder(physician.description, {
-        pooling: "mean",
-        normalize: true,
+      const embedding = await openai.embeddings.create({
+        model: "text-embedding-3-small",
+        input: physician.description,
       });
 
-      const embedding = Array.from(output.data);
       documents.push(physician.description);
-      embeddings.push(embedding);
+      embeddings.push(embedding.data[0].embedding);
       metadatas.push({
         physicianId: physician.id,
       });

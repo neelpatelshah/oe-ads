@@ -4,14 +4,14 @@ import Link from "next/link";
 const Page = () => {
   return (
     <div className="w-screen h-screen flex items-center justify-center">
-      <div className="w-1/2 h-full flex justify-center items-center bg-white border-primary border-8">
-        <p className="text-3xl text-primary font-bold">
+      <div className="w-1/2 h-full flex justify-center items-center bg-white hover:bg-primary/10 transition-colors duration-300">
+        <p className="text-3xl font-bold hover:cursor-pointer">
           <Link href="/ask">ASK</Link>
         </p>
       </div>
-      <div className="w-1/2 h-full flex justify-center items-center bg-primary border-white border-8">
+      <div className="w-1/2 h-full flex justify-center items-center bg-white hover:bg-primary/10 transition-colors duration-300">
         <Dialog>
-          <DialogTrigger className="text-3xl text-white font-bold hover:cursor-pointer">
+          <DialogTrigger className="text-3xl font-bold hover:cursor-pointer">
             ANALYTICS
           </DialogTrigger>
           <DialogContent>

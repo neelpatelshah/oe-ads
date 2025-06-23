@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
 import { ChromaClient, Collection } from "chromadb";
 import { MockAdDB, Physician } from "../../../data/mockdb";
-import { FeatureExtractionPipeline } from "@xenova/transformers";
+import { DefaultEmbeddingFunction } from "@chroma-core/default-embed";
 
-let embedder: FeatureExtractionPipeline | null = null;
+const embedder: DefaultEmbeddingFunction = new DefaultEmbeddingFunction();
 let physicianCollection: Collection | null = null;
 
 // Caching function for ML resources
@@ -11,8 +11,6 @@ async function getResources() {
   if (embedder && physicianCollection) {
     return { embedder, physicianCollection };
   }
-  const { pipeline } = await import("@xenova/transformers");
-  embedder = await pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2");
 
   const client = new ChromaClient();
   physicianCollection = await client.getCollection({
@@ -53,15 +51,11 @@ export async function POST(request: Request) {
     const { embedder, physicianCollection } = await getResources();
 
     // 3. Create an embedding for the ad's TARGET CATEGORY
-    const queryEmbeddingOutput = await embedder(textToEmbed, {
-      pooling: "mean",
-      normalize: true,
-    });
-    const queryEmbedding = Array.from(queryEmbeddingOutput.data);
+    const queryEmbeddings = await embedder.generate([textToEmbed]);
 
     // 4. Query the PHYSICIAN collection to find the top 3 most similar doctors
     const results = await physicianCollection.query({
-      queryEmbeddings: [queryEmbedding],
+      queryEmbeddings,
       nResults: 3,
     });
 

@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "chromadb": "chroma run --path ./getting-started",
-    "ready": "pnpm install && pnpm chromadb",
+    "ready": "pnpm install && pnpm build && pnpm chromadb",
     "seed": "tsx scripts/seed-db.ts",
     "start": "next start",
     "lint": "next lint"

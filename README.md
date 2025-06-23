@@ -16,11 +16,13 @@ This will generate mock seed data embeddings via OpenAI for us to use later.
 
 **Run**
 
-Run the development server:
+Start the local build:
 
 ```bash
-pnpm dev
+pnpm start
 ```
+
+_Note: you can run the dev server instead, but there's a strange thing with the NextJS Top Loader that blocks initial client streaming, so you may need to refresh the page to get it to a normal state._
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 

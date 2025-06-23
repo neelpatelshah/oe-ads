@@ -23,3 +23,9 @@ pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+
+---
+
+### Hi OE Team!
+
+Thanks for taking the time to look at this submission. Let me give you a rundown of what I did, what choices I made, and how I arrived at what I felt was an "awesome" solution.

@@ -72,7 +72,6 @@ const companies: Company[] = [
   { id: "genentech", name: "Genentech" },
   { id: "gsk", name: "GSK" },
   { id: "eli-lilly", name: "Eli Lilly" },
-  { id: "bms", name: "Bristol Myers Squibb" }, // Added a new company
 ] as const;
 
 const categories: Category[] = [

@@ -14,12 +14,7 @@ export const ChatHeader = ({ onNewConversation }: ChatHeaderProps) => (
         <Link href="/">
           <Logo small />
         </Link>
-        <Button
-          onClick={onNewConversation}
-          size="icon"
-          variant="outline"
-          className="hover:bg-gray-100"
-        >
+        <Button onClick={onNewConversation} size="icon" variant={"secondary"}>
           <SquarePen className="w-4 h-4" />
         </Button>
       </div>

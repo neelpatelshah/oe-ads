@@ -12,7 +12,7 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
   return (
     <div
       className={cn(
-        "prose prose-sm max-w-none dark:prose-invert",
+        "prose prose-sm max-w-none",
         "prose-p:my-1 prose-p:leading-relaxed",
         "prose-headings:my-2 prose-headings:font-medium",
         "prose-a:font-medium prose-a:text-primary prose-a:no-underline hover:prose-a:underline",

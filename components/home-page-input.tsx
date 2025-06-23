@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { Button } from "./ui/button";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import LoadingSpinner from "./loading-spinner";
 
 const questions = [
   "What are the treatments for KRAS-mutated PDAC?",
@@ -16,6 +17,7 @@ const questions = [
 const HomePageInput = () => {
   const [placeholder, setPlaceholder] = useState(questions[0]);
   const [question, setQuestion] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -29,6 +31,7 @@ const HomePageInput = () => {
   }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
+    setLoading(true);
     e.preventDefault();
     if (question.trim()) {
       router.push(`/ask?q=${encodeURIComponent(question)}`);
@@ -50,7 +53,11 @@ const HomePageInput = () => {
         type="submit"
         className="-mr-3 h-10 px-5 bg-primary text-white font-semibold rounded-full hover:primary/80 focus:outline-none focus:ring-2 focus:ring-offset-2"
       >
-        <ArrowRight className="w-4 h-4" />
+        {loading ? (
+          <LoadingSpinner size={16} color="white" />
+        ) : (
+          <ArrowRight className="w-4 h-4" />
+        )}
       </Button>
     </form>
   );

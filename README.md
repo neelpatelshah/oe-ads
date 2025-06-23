@@ -61,6 +61,8 @@ You should be able to ask a number of questions per category, such as `What is a
 
 I added an additional piece as well, which takes the response from the model and the ad headline (drug name and marketing tagline, essentially) and sends it off to a model to create a quick blurb about how the drug could apply to the situation the user is asking about. This tailors each ad to the user and their situation with the intention of more time spent on the ad and a higher click-through rate. Again, the level-ups here are straightforward, as in practice there will be more detail and information surrounding each ad/drug and the model that performs this application analysis will be better tuned to medical and pharmaceutical queries than an out of the box OpenAI model.
 
+And as one last extra piece, I added a very simple concept of "sponsored questions" that can show before the user has asked a question. This will naturally cause the ad for that company to show up due to the similarity process. This isn't exactly related to the problem statement but was a realistic addition that could boost ad revenue, and it helped fill out the home page.
+
 **Ad Performance Analysis**
 
 I created a very barebones dashboard to show off common ad performance metrics that are entirely simulated, as that metric collection implementation is quite common and would be better done through something like Mixpanel or PostHog anyways.

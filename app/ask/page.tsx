@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, Suspense } from "react";
 import { Ad } from "../data/mockdb";
 import { Message, useChat } from "@ai-sdk/react";
 import { useSearchParams } from "next/navigation";
@@ -14,7 +14,7 @@ interface AdWithCompany extends Ad {
   companyName: string;
 }
 
-export default function Home() {
+function AskPageContent() {
   const [ad, setAd] = useState<AdWithCompany | null>(null);
   const adRef = useRef<AdWithCompany | null>(null);
   const [application, setApplication] = useState<string | null>(null);
@@ -180,5 +180,26 @@ export default function Home() {
         isLoading={isLoading}
       />
     </div>
+  );
+}
+
+// Loading component for Suspense fallback
+function AskPageLoading() {
+  return (
+    <div className="flex flex-col h-screen font-sans">
+      <ChatHeader onNewConversation={() => {}} />
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="text-sm text-gray-600">Loading...</div>
+      </div>
+    </div>
+  );
+}
+
+// Main component with Suspense boundary
+export default function Home() {
+  return (
+    <Suspense fallback={<AskPageLoading />}>
+      <AskPageContent />
+    </Suspense>
   );
 }

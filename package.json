@@ -5,8 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "chromadb": "chroma run --path ./getting-started",
+    "ready": "pnpm install && pnpm chromadb",
     "seed": "tsx scripts/seed-db.ts",
-    "ready": "pnpm build && pnpm install && pnpm seed",
     "start": "next start",
     "lint": "next lint"
   },
@@ -76,6 +77,7 @@
     "zod": "^3.25.67"
   },
   "devDependencies": {
+    "@next/env": "^15.3.4",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

@@ -4,7 +4,7 @@
 pnpm ready
 ```
 
-This will do package installation and start the ChromaDB dev container, which is what I'm using as a lightweight solution for storing and quering embeddings.
+This will do package installation and start the ChromaDB dev container, which is what I'm using as a lightweight solution for storing and quering embeddings. You'll need a new terminal window after ChromaDB is up and running.
 
 You will need the `OPENAI_API_KEY` environment variable. It's suggested that you place is in an env file, but if you want to just run everything with the OpenAI key in tow that's fine too. It will be needed for the remaining steps.
 

@@ -21,36 +21,43 @@ import { AdPerformanceTable } from "@/app/analytics/[slug]/_components/ad-perf-t
 import {
   PhysicianMatchingTable,
   PhysicianMatch,
-  MatchesType,
 } from "@/app/analytics/[slug]/_components/physician-table";
-import LoadingSpinner from "@/components/loading-spinner";
-
-const EMPTY_MATCHES: MatchesType = {
-  arthritis: [],
-  "atrial-fibrillation": [],
-  "breast-cancer": [],
-  "non-small-cell-lung-cancer": [],
-  "pancreatic-cancer": [],
-  psoriasis: [],
-  "type-2-diabetes": [],
-};
 
 export default function AnalyticsDashboard({
   companyId,
+  initialCompany,
+  initialCompanyInsights,
+  initialCompanyAds,
+  initialAdInsights,
+  initialPhysicianMatches,
+  initialUniqueCategories,
+  initialUniquePhysicians,
 }: {
   companyId: CompanyId;
+  initialCompany: Company;
+  initialCompanyInsights: AdInsight | null;
+  initialCompanyAds: Ad[];
+  initialAdInsights: Record<string, AdInsight>;
+  initialPhysicianMatches: Record<CategoryId, PhysicianMatch[]>;
+  initialUniqueCategories: Category[];
+  initialUniquePhysicians: Physician[];
 }) {
-  const [company, setCompany] = useState<Company | null>(null);
+  const [company, setCompany] = useState<Company | null>(initialCompany);
   const [companyInsights, setCompanyInsights] = useState<AdInsight | null>(
-    null
+    initialCompanyInsights
   );
-  const [companyAds, setCompanyAds] = useState<Ad[]>([]);
-  const [adInsights, setAdInsights] = useState<Record<string, AdInsight>>({});
-  const [physicianMatches, setPhysicianMatches] =
-    useState<Record<CategoryId, PhysicianMatch[]>>(EMPTY_MATCHES);
-  const [uniqueCategories, setUniqueCategories] = useState<Category[]>([]);
-  const [uniquePhysicians, setUniquePhysicians] = useState<Physician[]>([]);
-  const [isMatchingLoading, setIsMatchingLoading] = useState(true);
+  const [companyAds, setCompanyAds] = useState<Ad[]>(initialCompanyAds);
+  const [adInsights, setAdInsights] =
+    useState<Record<string, AdInsight>>(initialAdInsights);
+  const [physicianMatches, setPhysicianMatches] = useState<
+    Record<CategoryId, PhysicianMatch[]>
+  >(initialPhysicianMatches);
+  const [uniqueCategories, setUniqueCategories] = useState<Category[]>(
+    initialUniqueCategories
+  );
+  const [uniquePhysicians, setUniquePhysicians] = useState<Physician[]>(
+    initialUniquePhysicians
+  );
 
   useEffect(() => {
     const stopTraffic = startTrafficSimulator({ intervalMs: 1500 });
@@ -82,64 +89,8 @@ export default function AnalyticsDashboard({
     };
   }, [companyId]);
 
-  useEffect(() => {
-    if (!company) return;
-
-    const fetchMatches = async () => {
-      setIsMatchingLoading(true);
-      const companyCategories = MockAdDB.getCategoriesForCompany(company.id);
-      const categoryDetails = companyCategories
-        .map((catId) => MockAdDB.listCategories().find((c) => c.id === catId))
-        .filter((c): c is Category => c !== undefined);
-
-      setUniqueCategories(categoryDetails);
-
-      const allMatches: MatchesType = EMPTY_MATCHES;
-      const allPhysicians: Record<string, Physician> = {};
-
-      for (const category of categoryDetails) {
-        // Find any ad for this category to use with the API
-        const adForCategory = MockAdDB.listAds().find((ad) =>
-          ad.categoryIds.includes(category.id)
-        );
-
-        if (adForCategory) {
-          try {
-            const response = await fetch("/api/analytics/match", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ adId: adForCategory.id }),
-            });
-            if (response.ok) {
-              const matches: PhysicianMatch[] = await response.json();
-              allMatches[category.id] = matches;
-              matches.forEach((match) => {
-                allPhysicians[match.physician.id] = match.physician;
-              });
-            }
-          } catch (error) {
-            console.error(
-              `Failed to fetch matches for category ${category.id}`,
-              error
-            );
-          }
-        }
-      }
-      setPhysicianMatches(allMatches);
-      setUniquePhysicians(Object.values(allPhysicians));
-      setIsMatchingLoading(false);
-    };
-
-    fetchMatches();
-  }, [company]);
-
   if (!company) {
-    return (
-      <div className="flex flex-col justify-center items-center min-h-screen">
-        <LoadingSpinner size={32} />
-        <p className="mt-4 text-muted-foreground">Loading Analytics...</p>
-      </div>
-    );
+    return null;
   }
 
   return (
@@ -152,7 +103,6 @@ export default function AnalyticsDashboard({
           physicians={uniquePhysicians}
           categories={uniqueCategories}
           matches={physicianMatches}
-          isLoading={isMatchingLoading}
         />
       </main>
     </div>

@@ -125,3 +125,30 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  /* key terms & entities */
+  .ai-highlight {
+    @apply bg-secondary/20 text-primary font-semibold rounded px-1;
+  }
+  /* dosage steps or lists */
+  .ai-step {
+    @apply list-decimal list-inside font-medium;
+  }
+  /* warnings or contraindications */
+  .ai-warning {
+    @apply bg-destructive/20 text-destructive font-semibold rounded px-1;
+  }
+  /* inline definitions or clarifications */
+  .ai-definition {
+    @apply italic underline decoration-accent/50;
+  }
+}
+
+/* Dark-mode variants */
+.dark .ai-highlight {
+  @apply bg-secondary/30;
+}
+.dark .ai-warning {
+  @apply bg-destructive/30;
+}

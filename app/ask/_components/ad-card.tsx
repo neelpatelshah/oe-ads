@@ -1,5 +1,3 @@
-"use client";
-
 import { Ad } from "@/app/data/mockdb";
 import LoadingSpinner from "@/components/loading-spinner";
 

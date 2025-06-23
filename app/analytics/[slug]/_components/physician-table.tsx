@@ -1,7 +1,6 @@
 "use client";
 
 import { Physician, Category, CategoryId } from "@/app/data/mockdb";
-import LoadingSpinner from "@/components/loading-spinner";
 import { Card } from "@/components/ui/card";
 import {
   Table,
@@ -23,23 +22,31 @@ export const PhysicianMatchingTable = ({
   physicians,
   categories,
   matches,
-  isLoading,
 }: {
   physicians: Physician[];
   categories: Category[];
   matches: MatchesType;
-  isLoading: boolean;
 }) => {
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center pt-16">
-        <LoadingSpinner size={24} />
-        <p className="mt-4 text-muted-foreground">
-          Matching Physicians to Ad Spend...
-        </p>
-      </div>
+  const categoryAverages = categories.map((category) => {
+    const categoryMatches = matches[category.id] || [];
+    if (categoryMatches.length === 0) {
+      return 0;
+    }
+    const totalSimilarity = categoryMatches.reduce(
+      (sum, match) => sum + match.similarity,
+      0
     );
-  }
+    return totalSimilarity / categoryMatches.length;
+  });
+
+  const allSimilarities = Object.values(matches)
+    .flat()
+    .map((match) => match.similarity);
+
+  const overallAverage =
+    allSimilarities.length > 0
+      ? allSimilarities.reduce((sum, s) => sum + s, 0) / allSimilarities.length
+      : 0;
 
   return (
     <>
@@ -108,6 +115,22 @@ export const PhysicianMatchingTable = ({
                 </TableRow>
               );
             })}
+            <TableRow>
+              <TableCell className="font-bold">Overall</TableCell>
+              {categoryAverages.map((avg, index) => (
+                <TableCell
+                  key={categories[index].id}
+                  className="text-right font-bold"
+                >
+                  {avg > 0 ? `${(avg * 100).toFixed(1)}%` : "-"}
+                </TableCell>
+              ))}
+              <TableCell className="text-right font-bold">
+                {overallAverage > 0
+                  ? `${(overallAverage * 100).toFixed(1)}%`
+                  : "-"}
+              </TableCell>
+            </TableRow>
           </TableBody>
         </Table>
       </Card>

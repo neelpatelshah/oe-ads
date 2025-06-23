@@ -21,7 +21,8 @@ async function getCollection() {
   return { collection };
 }
 
-const SIMILARITY_THRESHOLD = 0.5;
+// this would absolutely be higher in production given time to do better testing, embedding, and scoring
+const SIMILARITY_THRESHOLD = 0.1;
 
 export async function POST(request: Request) {
   try {

@@ -1,6 +1,5 @@
-"use client";
-
 import { Message } from "ai";
+import MarkdownRenderer from "./markdown-renderer";
 
 interface MessageListProps {
   messages: Message[];
@@ -21,13 +20,7 @@ export const MessageList = ({ messages }: MessageListProps) => (
           </div>
         </div>
       ) : (
-        <div
-          key={item.id}
-          className="prose prose-sm max-w-none"
-          dangerouslySetInnerHTML={{
-            __html: item.content.replace(/\n/g, "<br />"),
-          }}
-        />
+        <MarkdownRenderer content={item.content} key={item.id} />
       )
     )}
   </div>

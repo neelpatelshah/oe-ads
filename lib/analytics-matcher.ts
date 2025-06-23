@@ -1,6 +1,5 @@
-import { NextResponse } from "next/server";
 import { ChromaClient, Collection } from "chromadb";
-import { MockAdDB, Physician } from "../../../data/mockdb";
+import { MockAdDB, Physician } from "@/app/data/mockdb";
 import OpenAI from "openai";
 import { PHYSICIAN_COLLECTION_NAME } from "@/lib/utils";
 
@@ -23,29 +22,18 @@ async function getResources() {
   return { physicianCollection };
 }
 
-export async function POST(request: Request) {
+export async function Matcher(adId: string) {
   try {
-    const { adId } = await request.json();
-    if (!adId) {
-      return NextResponse.json({ error: "adId is required" }, { status: 400 });
-    }
-
     const ad = MockAdDB.listAds().find((a) => a.id === adId);
     if (!ad || ad.categoryIds.length === 0) {
-      return NextResponse.json(
-        { error: "Ad not found or has no categories" },
-        { status: 404 }
-      );
+      return null;
     }
     const primaryCategoryId = ad.categoryIds[0];
     const category = MockAdDB.listCategories().find(
       (c) => c.id === primaryCategoryId
     );
     if (!category) {
-      return NextResponse.json(
-        { error: "Category not found for ad" },
-        { status: 404 }
-      );
+      return null;
     }
     const textToEmbed = category.label;
 
@@ -63,7 +51,7 @@ export async function POST(request: Request) {
     });
 
     if (!results.ids?.[0] || !results.distances?.[0]) {
-      return NextResponse.json([]);
+      return {};
     }
 
     const matchedPhysicianIds = results.ids[0];
@@ -89,12 +77,8 @@ export async function POST(request: Request) {
         (p): p is { physician: Physician; similarity: number } => p !== null
       );
 
-    return NextResponse.json(matchedPhysicians);
+    return { matchedPhysicians };
   } catch (error) {
     console.error("Audience matching error:", error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
   }
 }

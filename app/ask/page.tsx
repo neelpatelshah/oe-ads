@@ -133,8 +133,10 @@ export default function Home() {
     }
   };
 
+  console.log("Messages:", messages);
+
   return (
-    <div className="flex flex-col h-screen bg-gray-50 font-sans">
+    <div className="flex flex-col h-screen font-sans">
       <ChatHeader onNewConversation={handleNewConversation} />
 
       <main className="flex-grow pt-20 pb-36">

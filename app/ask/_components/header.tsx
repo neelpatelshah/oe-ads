@@ -1,6 +1,6 @@
 import Logo from "@/components/logo";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { SquarePen } from "lucide-react";
 import Link from "next/link";
 
 interface ChatHeaderProps {
@@ -20,7 +20,7 @@ export const ChatHeader = ({ onNewConversation }: ChatHeaderProps) => (
           variant="outline"
           className="hover:bg-gray-100"
         >
-          <Plus className="w-4 h-4" />
+          <SquarePen className="w-4 h-4" />
         </Button>
       </div>
     </div>

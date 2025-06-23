@@ -6,6 +6,7 @@
 export interface Company {
   id: CompanyId;
   name: string;
+  logo: string;
 }
 
 export interface Category {
@@ -19,6 +20,12 @@ export interface Ad {
   categoryIds: CategoryId[]; // can target multiple
   creativeUrl: string; // where to fetch the image / html
   headline: string;
+}
+
+export interface SponsoredQuestion {
+  id: string;
+  question: string;
+  companyId: CompanyId;
 }
 
 /* ---------- Metric counters ---------- */
@@ -68,10 +75,26 @@ export interface Physician {
 
 /* ---------- Seed data (UPDATED & EXPANDED) ---------- */
 const companies: Company[] = [
-  { id: "pfizer", name: "Pfizer" },
-  { id: "genentech", name: "Genentech" },
-  { id: "gsk", name: "GSK" },
-  { id: "eli-lilly", name: "Eli Lilly" },
+  {
+    id: "pfizer",
+    name: "Pfizer",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/8/8b/Pfizer_%282021%29.png",
+  },
+  {
+    id: "genentech",
+    name: "Genentech",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Genentech.svg/2560px-Genentech.svg.png",
+  },
+  {
+    id: "gsk",
+    name: "GSK",
+    logo: "https://upload.wikimedia.org/wikipedia/en/thumb/a/a6/GSK_logo_2014.svg/1189px-GSK_logo_2014.svg.png",
+  },
+  {
+    id: "eli-lilly",
+    name: "Eli Lilly",
+    logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2b/Eli_Lilly_and_Company.svg/2560px-Eli_Lilly_and_Company.svg.png",
+  },
 ] as const;
 
 const categories: Category[] = [
@@ -173,6 +196,29 @@ const ads: Ad[] = [
   },
 ] as const;
 
+const sponsoredQuestions: SponsoredQuestion[] = [
+  {
+    id: "sq_001",
+    question: "What are the latest treatment options for HR+/HER2- MBC?",
+    companyId: "pfizer",
+  },
+  {
+    id: "sq_002",
+    question: "How does XELJANZ compare to other JAK inhibitors for RA?",
+    companyId: "pfizer",
+  },
+  {
+    id: "sq_003",
+    question: "What is the efficacy of KEYTRUDA in first-line NSCLC?",
+    companyId: "gsk",
+  },
+  {
+    id: "sq_004",
+    question: "What are the cardiovascular benefits of JARDIANCE for T2D?",
+    companyId: "eli-lilly",
+  },
+];
+
 const physicians: Physician[] = [
   {
     id: "phys_001",
@@ -226,6 +272,10 @@ export const MockAdDB = {
 
   listCategories(): Category[] {
     return [...categories];
+  },
+
+  listSponsoredQuestions(): SponsoredQuestion[] {
+    return [...sponsoredQuestions];
   },
 
   listAds(filter?: { companyId?: CompanyId; categoryId?: CategoryId }): Ad[] {

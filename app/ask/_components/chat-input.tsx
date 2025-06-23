@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import React from "react";
+import { SponsoredQuestions } from "@/components/sponsored-questions";
 
 interface ChatInputProps {
   onSubmit: (event: React.FormEvent<HTMLFormElement>) => void;

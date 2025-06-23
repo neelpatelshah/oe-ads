@@ -8,6 +8,7 @@ import { ChatHeader } from "./_components/header";
 import { AdCard } from "./_components/ad-card";
 import { MessageList } from "./_components/message-list";
 import { ChatInput } from "./_components/chat-input";
+import { SponsoredQuestions } from "@/components/sponsored-questions";
 
 interface AdWithCompany extends Ad {
   companyName: string;
@@ -133,19 +134,26 @@ export default function Home() {
     }
   };
 
-  console.log("Messages:", messages);
-
   return (
     <div className="flex flex-col h-screen font-sans">
       <ChatHeader onNewConversation={handleNewConversation} />
 
-      <main className="flex-grow pt-20 pb-36">
-        <div className="max-w-3xl mx-auto px-4">
-          <AdCard ad={ad} isLoading={isLoading} application={application} />
-          <MessageList messages={messages} />
-          <div ref={endOfMessagesRef} />
+      {messages.length > 0 ? (
+        <div className="flex-grow pt-20 pb-36">
+          <div className="max-w-3xl mx-auto px-4">
+            <AdCard ad={ad} isLoading={isLoading} application={application} />
+            <MessageList messages={messages} />
+            <div ref={endOfMessagesRef} />
+          </div>
         </div>
-      </main>
+      ) : (
+        <div className="w-full h-full flex items-center justify-center">
+          <div className="flex flex-col items-center w-2xl text-sm text-gray-600">
+            What can I help you with?
+            <SponsoredQuestions />
+          </div>
+        </div>
+      )}
 
       <ChatInput
         onSubmit={handleSubmit}

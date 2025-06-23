@@ -7,17 +7,32 @@ import { ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-export const SponsoredQuestions = () => {
+export const SponsoredQuestions = ({
+  inChat,
+  onQuestionSelect,
+}: {
+  inChat?: boolean;
+  onQuestionSelect?: (question: string) => void;
+}) => {
   const router = useRouter();
   const [sampledQuestions, setSampledQuestions] = useState<SponsoredQuestion[]>(
     []
   );
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     if (!sampledQuestions.length) {
       const allQuestions = MockAdDB.listSponsoredQuestions();
       setSampledQuestions(sampleSize(allQuestions, 2));
     }
+  }, [sampledQuestions.length]);
+
+  useEffect(() => {
+    // Add a small delay to ensure everything is properly mounted
+    const timer = setTimeout(() => {
+      setIsReady(true);
+    }, 100);
+    return () => clearTimeout(timer);
   }, []);
 
   const companies = MockAdDB.listCompanies();
@@ -27,7 +42,18 @@ export const SponsoredQuestions = () => {
   };
 
   const handleQuestionClick = (question: string) => {
-    router.push(`/ask?q=${encodeURIComponent(question)}`);
+    if (!isReady) return; // Prevent clicks before component is ready
+
+    if (inChat && onQuestionSelect) {
+      // Use the callback provided by the parent (ask page) to handle the question
+      onQuestionSelect(question);
+    } else if (inChat) {
+      // Fallback: navigate with router and update URL params
+      router.push(`/ask?q=${encodeURIComponent(question)}`);
+    } else {
+      // Normal navigation for home page
+      router.push(`/ask?q=${encodeURIComponent(question)}`);
+    }
   };
 
   return (
@@ -37,7 +63,9 @@ export const SponsoredQuestions = () => {
           <Card
             key={item.id}
             onClick={() => handleQuestionClick(item.question)}
-            className="w-full p-3 rounded-lg border hover:border-black bg-transparent cursor-pointer flex flex-row items-center justify-between"
+            className={`w-full p-3 rounded-lg border hover:border-black bg-transparent flex flex-row items-center justify-between transition-all ${
+              isReady ? "cursor-pointer" : "cursor-not-allowed opacity-50"
+            }`}
           >
             <div className="text-xs">
               <p className="font-medium">{item.question}</p>

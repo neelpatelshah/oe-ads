@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { MockAdDB } from "@/app/data/mockdb";
+import { ClientOnly } from "@/components/client-only";
 
 const Page = () => {
   const companies = MockAdDB.listCompanies();
@@ -18,34 +19,51 @@ const Page = () => {
         <Logo />
         <p className="text-gray-600 mb-8">What can I help you with today?</p>
         <HomePageInput />
-        <SponsoredQuestions />
+        <ClientOnly
+          fallback={
+            <div className="mt-4 w-3/4">
+              <div className="w-full flex flex-col gap-4">
+                <div className="w-full p-3 rounded-lg border bg-transparent h-16 animate-pulse" />
+                <div className="w-full p-3 rounded-lg border bg-transparent h-16 animate-pulse" />
+              </div>
+            </div>
+          }
+        >
+          <SponsoredQuestions />
+        </ClientOnly>
       </div>
       <div className="h-10 flex justify-center items-center">
-        <Dialog>
-          <DialogTrigger className="mb-12">
-            <div className="w-full h-full rounded-lg text-gray-400 hover:text-black hover:border hover:border-black cursor-pointer text-xs p-2 font-light">
-              Advertiser? Open the portal.
-              <ExternalLink className="inline ml-2" size={12} />
-            </div>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <div className="grid grid-cols-2 gap-4 pt-4">
-              {companies.map((company) => (
-                <Link
-                  key={company.id}
-                  href={`/analytics/${company.id}`}
-                  className="flex h-24 items-center justify-center rounded-lg border border-transparent p-4 shadow-md transition-all hover:border-black"
-                >
-                  <img
-                    src={company.logo}
-                    alt={company.name}
-                    className="h-full w-full object-contain"
-                  />
-                </Link>
-              ))}
-            </div>
-          </DialogContent>
-        </Dialog>
+        <ClientOnly
+          fallback={
+            <div className="mb-12 h-8 w-32 bg-gray-200 rounded animate-pulse" />
+          }
+        >
+          <Dialog>
+            <DialogTrigger className="mb-12">
+              <div className="w-full h-full rounded-lg text-gray-400 hover:text-black hover:border hover:border-black cursor-pointer text-xs p-2 font-light">
+                Advertiser? Open the portal.
+                <ExternalLink className="inline ml-2" size={12} />
+              </div>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <div className="grid grid-cols-2 gap-4 pt-4">
+                {companies.map((company) => (
+                  <Link
+                    key={company.id}
+                    href={`/analytics/${company.id}`}
+                    className="flex h-24 items-center justify-center rounded-lg border border-transparent p-4 shadow-md transition-all hover:border-black"
+                  >
+                    <img
+                      src={company.logo}
+                      alt={company.name}
+                      className="h-full w-full object-contain"
+                    />
+                  </Link>
+                ))}
+              </div>
+            </DialogContent>
+          </Dialog>
+        </ClientOnly>
       </div>
     </div>
   );

@@ -49,7 +49,7 @@ I also generated a mocked database and service layer that was suitable for my ne
 
 **Ad Placement**
 
-I wanted to have an ad placement solution that better mirrored something OpenEvidence might actually build. I settled on creating embeddings for each category in a vectorized database and then querying against those with the user's question to get results, and using cosine similarity to determine if an ad should be shown or not.
+I wanted to have an ad placement solution that better mirrored something OpenEvidence might actually build. I settled on creating embeddings for each category in a vector database and then querying against those with the user's question to get results, and using cosine similarity to determine if an ad should be shown or not.
 
 I chose ChromaDB as a very light and easy solution to do this, fitting quite neatly into a NextJS environment without too much effort. Ultimately, I used enough pieces to make this work, but the level-ups here in the real world are straightforward:
 
@@ -65,7 +65,7 @@ And as one last extra piece, I added a very simple concept of "sponsored questio
 
 **Ad Performance Analysis**
 
-I created a very barebones dashboard to show off common ad performance metrics that are entirely simulated, as that metric collection implementation is quite common and would be better done through something like Mixpanel or PostHog anyways.
+I created a very barebones dashboard to show off common ad performance metrics that are entirely simulated, as that metric collection implementation is quite common and would be better done through something like Mixpanel or PostHog anyways. I added the ability to view bought categories and update them for completeness, although this isn't connected to any DB actions.
 
 The second section on the dashboard shows a match scoring per ad and then the same scoring applied to "converted" physicians.
 
@@ -85,6 +85,7 @@ In addition to the improvements I mentioned above, I want to make note of a few 
 - User profiles would factor into ad placement, not just the query and ad info.
 - The Vercel AI SDK could still be used since you can supply custom models to it, its one example of many modular choices throughout the project.
 - There's a bunch of console warnings from a dependency of ChromaDB that isn't resolved properly. It's not needed so I just left it alone rather than toying too much with ESM stuff.
+- `ClientOnly` was a Sonnet suggested fix for some hydration issues on initial page loads to better manage the loading boundary.
 
 To me, this shows multiple areas of a mature ad offering covered in a realistic and upgradeable way. Between core ingredients (like vector search for ad placement) and bits of sugar (how does this drug apply to the model response?), I think this demos a product that advertisers would see immediate value in with metrics to help improve their ads and buy back into the system.
 

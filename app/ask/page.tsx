@@ -34,6 +34,7 @@ export default function Home() {
     status,
     setMessages,
     append,
+    stop,
   } = useChat({
     api: "/api/ask",
     onFinish: (message) => {
@@ -102,7 +103,21 @@ export default function Home() {
     await fetchAdForQuestion(currentQuestion);
   };
 
+  const handleSponsoredQuestionSelect = async (question: string) => {
+    // Update URL with the new question
+    const url = new URL(window.location.href);
+    url.searchParams.set("q", question);
+    window.history.pushState({}, "", url.toString());
+
+    // Fetch ad for the new question
+    await fetchAdForQuestion(question);
+
+    // Add the question as a user message to the chat
+    append({ role: "user", content: question });
+  };
+
   const handleNewConversation = () => {
+    stop();
     setMessages([]);
     const url = new URL(window.location.href);
     url.searchParams.delete("q");
@@ -150,7 +165,10 @@ export default function Home() {
         <div className="w-full h-full flex items-center justify-center">
           <div className="flex flex-col items-center w-2xl text-sm text-gray-600">
             What can I help you with?
-            <SponsoredQuestions />
+            <SponsoredQuestions
+              inChat
+              onQuestionSelect={handleSponsoredQuestionSelect}
+            />
           </div>
         </div>
       )}
